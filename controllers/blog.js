@@ -80,15 +80,15 @@ blogRouter.get("/:id", async (request, response, next) => {
 blogRouter.post("/", async (request, response, next) => {
   const { title, author, url, likes } = request.body;
 
-  if (!title) {
-    return response.status(400).json({ error: "Title is required" });
+  if (!title || !url) {
+    return response.status(400).json({ error: "Title and Url are required" });
   }
 
   const blog = new Blog({
-    title,
-    author,
-    url,
-    likes,
+    title: title,
+    author: author,
+    url: url,
+    likes: likes || 0,
   });
 
   try {

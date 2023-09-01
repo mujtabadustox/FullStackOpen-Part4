@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-mongoose.set("bufferTimeoutMS", 150000);
+mongoose.set("bufferTimeoutMS", 15000000);
 const supertest = require("supertest");
 const helper = require("./test_helper");
 const app = require("../app");
@@ -13,6 +13,30 @@ beforeEach(async () => {
   await blogObject.save();
   blogObject = new Blog(helper.initialBlogs[1]);
   await blogObject.save();
+});
+
+test("_id is defined", async () => {
+  const blogs = await helper.blogsInDb();
+
+  blogs.map((b) => expect(b._id).toBeDefined());
+});
+
+test("likes defaut 0", async () => {
+  const newBlog = {
+    title: "Testing can be Fun sometimes",
+    author: "Zoroark",
+    url: "www.mujtabazoroark.net",
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const blogs = await helper.blogsInDb();
+  const blogAtEnd = blogs[blogs.length - 1];
+  expect(blogAtEnd.likes).toBe(0);
 });
 
 test("a specific blog can be viewed", async () => {
@@ -67,10 +91,10 @@ test("a valid blog can be added", async () => {
   expect(titles).toContain("Testing is !Fun");
 });
 
-test("blog without a title is not added", async () => {
+test("blog without a title or a url is not added", async () => {
   const newBlog = {
+    title: "Man!!",
     author: "YASS GIRL!",
-    url: "www.lmao.net",
     likes: 6,
   };
 
