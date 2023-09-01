@@ -124,6 +124,43 @@ test("the blog exists", async () => {
   expect(titles).toContain("React Patterns");
 });
 
+describe("deletion of a blog", () => {
+  test("succeeds with status code 204 if id is valid", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+
+    await api.delete(`/api/blogs/${blogToDelete._id}`).expect(204);
+
+    const blogsAtEnd = await helper.blogsInDb();
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1);
+
+    const titles = blogsAtEnd.map((b) => b.title);
+
+    expect(titles).not.toContain(blogToDelete.title);
+  });
+});
+
+describe("updating a blog", () => {
+  test("Update Blog", async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
+
+    const newBlog = {
+      title: blogToUpdate.title,
+      author: blogToUpdate.author,
+      url: blogToUpdate.url,
+      likes: 17,
+    };
+
+    await api.put(`/api/blogs/${blogToUpdate._id}`).send(newBlog).expect(200);
+
+    const blogsAtEnd = await helper.blogsInDb();
+
+    expect(blogsAtEnd[0].likes).toBe(17);
+  });
+});
+
 afterAll(async () => {
   await mongoose.connection.close();
 });
