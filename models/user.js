@@ -6,6 +6,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    minLength: 3,
+    validate: {
+      validator: function (v) {
+        return /^.{3,}$/.test(v);
+      },
+      message: (props) => `${props.value} is not of enough chars`,
+    },
   },
   name: String,
   passwordHash: String,
