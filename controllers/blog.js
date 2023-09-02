@@ -1,13 +1,17 @@
 const blogRouter = require("express").Router();
 const Blog = require("../models/blog");
+const User = require("../models/user");
 
-blogRouter.get("/", async (request, response, next) => {
-  try {
-    const blogs = await Blog.find({});
-    response.json(blogs);
-  } catch (exception) {
-    next(exception);
-  }
+blogRouter.get("/", async (request, response) => {
+  const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
+  response.json(blogs);
+
+  // try {
+  //   const blogs = await Blog.find({});
+  //   response.json(blogs);
+  // } catch (exception) {
+  //   next(exception);
+  // }
 
   // Blog.find({})
   //   .then((blogs) => {
@@ -16,14 +20,18 @@ blogRouter.get("/", async (request, response, next) => {
   //   .catch((error) => next(error));
 });
 
-blogRouter.delete("/:id", async (request, response, next) => {
-  try {
-    const id = request.params.id;
-    const removedBlog = await Blog.findByIdAndRemove(id);
-    response.status(204).end();
-  } catch (exception) {
-    next(exception);
-  }
+blogRouter.delete("/:id", async (request, response) => {
+  const id = request.params.id;
+  const removedBlog = await Blog.findByIdAndRemove(id);
+  response.status(204).end();
+
+  // try {
+  //   const id = request.params.id;
+  //   const removedBlog = await Blog.findByIdAndRemove(id);
+  //   response.status(204).end();
+  // } catch (exception) {
+  //   next(exception);
+  // }
 
   // Blog.findByIdAndRemove(id)
   //   .then(() => {
@@ -34,19 +42,27 @@ blogRouter.delete("/:id", async (request, response, next) => {
   //   });
 });
 
-blogRouter.put("/:id", async (request, response, next) => {
+blogRouter.put("/:id", async (request, response) => {
   const id = request.params.id;
   const { title, author, url, likes } = request.body;
-  try {
-    const newBlog = await Blog.findByIdAndUpdate(
-      id,
-      { title, author, url, likes },
-      { new: true }
-    );
-    response.send(newBlog);
-  } catch (exception) {
-    next(exception);
-  }
+
+  const newBlog = await Blog.findByIdAndUpdate(
+    id,
+    { title, author, url, likes },
+    { new: true }
+  );
+  response.send(newBlog);
+
+  // try {
+  //   const newBlog = await Blog.findByIdAndUpdate(
+  //     id,
+  //     { title, author, url, likes },
+  //     { new: true }
+  //   );
+  //   response.send(newBlog);
+  // } catch (exception) {
+  //   next(exception);
+  // }
 
   // Blog.findByIdAndUpdate(id, { title, author, url, likes }, { new: true })
   //   .then((newBlog) => {
@@ -57,14 +73,17 @@ blogRouter.put("/:id", async (request, response, next) => {
   //   });
 });
 
-blogRouter.get("/:id", async (request, response, next) => {
+blogRouter.get("/:id", async (request, response) => {
   const id = request.params.id;
-  try {
-    const blog = await Blog.findById(id);
-    response.json(blog);
-  } catch (exception) {
-    next(exception);
-  }
+  const blog = await Blog.findById(id);
+  response.json(blog);
+
+  // try {
+  //   const blog = await Blog.findById(id);
+  //   response.json(blog);
+  // } catch (exception) {
+  //   next(exception);
+  // }
 
   // Blog.findById(id)
   //   .then((blogs) => {
@@ -77,26 +96,34 @@ blogRouter.get("/:id", async (request, response, next) => {
   //   .catch((error) => next(error));
 });
 
-blogRouter.post("/", async (request, response, next) => {
+blogRouter.post("/", async (request, response) => {
   const { title, author, url, likes } = request.body;
 
   if (!title || !url) {
     return response.status(400).json({ error: "Title and Url are required" });
   }
 
+  const user = await User.findById(request.body.userId);
+
   const blog = new Blog({
     title: title,
     author: author,
     url: url,
     likes: likes || 0,
+    user: user.id,
   });
 
-  try {
-    const newBlog = await blog.save();
-    response.status(201).json(newBlog);
-  } catch (error) {
-    next(error);
-  }
+  const newBlog = await blog.save();
+  user.blogs = user.blogs.concat(newBlog._id);
+  await user.save();
+  response.status(201).json(newBlog);
+
+  // try {
+  //   const newBlog = await blog.save();
+  //   response.status(201).json(newBlog);
+  // } catch (error) {
+  //   next(error);
+  // }
 
   // blog
   //   .save()
